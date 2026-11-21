@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KREBUILD</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f7f7f7;--fg:#535353;--card:#fff;--ok:#2e9e4f;--bad:#d33;--acc:#e6e6e6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1f1f1f;--fg:#d6d6d6;--card:#2b2b2b;--acc:#333;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1f1f1f;--fg:#d6d6d6;--card:#2b2b2b;--acc:#333;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.4 ui-monospace,Menlo,Consolas,monospace;min-height:100vh}
+.px{font-family:'Press Start 2P',ui-monospace,monospace}
+.scr{display:none;min-height:100vh;padding:16px;max-width:1100px;margin:0 auto}
+.scr.on{display:block}
+.mid{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:22px;min-height:90vh}
+h1{font-size:clamp(26px,7vw,52px);margin:0;letter-spacing:2px}
+h2{font-size:clamp(14px,3.5vw,20px);margin:0;line-height:1.6}
+button{font:inherit;color:var(--fg);background:var(--card);border:3px solid var(--fg);padding:12px 22px;cursor:pointer;border-radius:0}
+button:hover{background:var(--fg);color:var(--bg)}
+button:focus-visible,.card:focus-visible{outline:3px solid var(--ok);outline-offset:2px}
+.bar{width:min(320px,80vw);height:18px;border:3px solid var(--fg)}
+.bar i{display:block;height:100%;width:0;background:var(--fg);transition:width 1.4s steps(14)}
+.chars{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.ch{display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 22px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0 10px}
+.tm{font-size:22px;border:3px solid var(--fg);padding:8px 12px;background:var(--card)}
+.tm.low{color:var(--bad);border-color:var(--bad)}
+#pn{color:var(--bad);min-width:50px;font-weight:bold}
+#pn.go{animation:fl 1.2s forwards}
+@keyframes fl{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-14px)}}
+.main{display:flex;gap:12px;height:440px}
+.ingb{width:230px;flex:none;border:3px solid var(--fg);border-radius:18px;padding:10px;display:flex;flex-direction:column;background:var(--card)}
+.ingb h3{margin:0 0 8px;font-size:15px}
+#ing{display:flex;flex-direction:column;gap:8px;overflow:auto;flex:1;padding:2px}
+.card{border:2px solid var(--fg);background:var(--bg);padding:4px;cursor:grab;color:var(--fg);flex:none}
+.card svg{display:block;width:100%;height:auto;pointer-events:none}
+.card.sel{outline:3px solid var(--ok)}
+.card.lock{cursor:default;border-color:var(--ok)}
+.view{flex:1;position:relative;overflow:hidden;border:3px solid var(--fg);background:var(--acc)}
+.stage{position:absolute;left:50%;top:50%;width:560px;height:520px;margin:-260px 0 0 -280px;transform:scale(.7);transition:transform 1s ease}
+.stage.focus{transform:scale(1.12)}
+.rg{position:absolute;inset:0;width:100%;height:100%}
+.nd{position:absolute;width:40px;height:40px;margin:-20px 0 0 -20px;border:3px solid var(--fg);border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-weight:bold}
+.nd.cur{background:var(--fg);color:var(--bg)}
+.nd.done{background:var(--ok);border-color:var(--ok);color:#fff}
+.panel{position:absolute;left:50%;top:50%;width:340px;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--bg);border:3px solid var(--fg);padding:10px}
+#slots{display:flex;gap:8px;width:100%}
+.slot{flex:1;max-width:320px;margin:0 auto;border:2px dashed var(--fg);padding:5px;min-height:96px;text-align:center;font-size:13px;background:var(--card)}
+.slot.ok{border:3px solid var(--ok)}
+.slot.no{animation:sh .5s;border-color:var(--bad)}
+@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.drop{min-height:60px}
+.slot.mg .drop{transform:translateY(70px) scale(.4);opacity:0;transition:transform .9s,opacity .9s}
+.arr{font-size:12px}
+#prod{width:100%;border:3px solid var(--fg);padding:6px;text-align:center;cursor:pointer;background:var(--card)}
+#prod:hover{background:var(--acc)}
+#prod.ok{border-color:var(--ok);cursor:default}
+#prod small{display:block;font-size:11px}
+.pv{min-height:50px;color:var(--fg)}
+.pv svg{width:100%;max-width:300px;height:auto}
+.ins{border:3px solid var(--fg);border-radius:18px;padding:12px 16px;margin:12px 0;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--card)}
+.track{position:relative;height:96px;border-bottom:4px solid var(--fg);overflow:hidden}
+.ground{position:absolute;left:0;right:0;bottom:-4px;height:14px;background:repeating-linear-gradient(90deg,var(--fg) 0 6px,transparent 6px 40px);opacity:.35;animation:gr .6s linear infinite}
+.track.stop .ground{animation-play-state:paused}
+@keyframes gr{to{background-position:-40px 0}}
+.fin{position:absolute;right:0;bottom:0;width:18px;height:100%;background:repeating-conic-gradient(var(--fg) 0 25%,var(--bg) 0 50%) 0 0/12px 12px}
+.flag{position:absolute;bottom:0;width:2px;height:24px;background:var(--fg);opacity:.5}
+.rn{position:absolute;bottom:4px;left:0;width:56px;color:var(--fg);transition:left 2.2s ease-in-out}
+.rn .sp{display:block}
+.rn.tired{transform:rotate(-8deg);animation:bob .5s infinite}
+@keyframes bob{50%{transform:rotate(-8deg) translateY(3px)}}
+.bub{position:absolute;left:46px;top:-12px;font-size:12px;white-space:nowrap}
+.wtrack{position:relative;height:96px;border-bottom:4px solid var(--fg);width:100%;overflow:hidden}
+#wr{position:absolute;bottom:4px;left:0;width:56px}
+#wr.run{animation:cross 3.6s ease-in forwards}
+@keyframes cross{to{left:calc(100% - 56px)}}
+.fin2{position:absolute;left:70%;bottom:0;width:18px;height:100%;background:repeating-conic-gradient(var(--fg) 0 25%,var(--bg) 0 50%) 0 0/12px 12px}
+#lr{position:relative;color:var(--fg);animation:zi 1.2s ease-out}
+@keyframes zi{from{transform:scale(.2)}to{transform:scale(1)}}
+#ls{display:inline-block;transform:rotate(-8deg);animation:gp .7s 1.2s infinite ease-in-out}
+@keyframes gp{50%{transform:rotate(-8deg) scale(1.06,.94)}}
+.gb{position:absolute;left:100%;top:0;margin-left:8px;font-size:12px;white-space:nowrap;animation:bl 1.4s infinite}
+@keyframes bl{50%{opacity:.3}}
+@media (max-width:760px){.main{flex-direction:column;height:auto}.ingb{width:100%}#ing{flex-direction:row;overflow-x:auto}.card{min-width:190px}.view{height:400px}}
+@media (prefers-reduced-motion:reduce){.stage{transition:none}.rn{transition:none}}
+</style>
+</head>
+<body>
+
+<section id="s0" class="scr on"><div class="mid">
+  <h1 class="px">KREBUILD</h1>
+  <p>Build the Krebs cycle, one molecule at a time.</p>
+  <div class="bar" id="lb"><i></i></div>
+  <button id="go" class="px" hidden>START</button>
+</div></section>
+
+<section id="s1" class="scr"><div class="mid">
+  <h2 class="px">Pick your runner</h2>
+  <div class="chars" id="chars"></div>
+</div></section>
+
+<section id="s2" class="scr">
+  <div class="top">
+    <div class="tm px" id="tm">10:00</div><div id="pn"></div>
+    <div class="px" id="st" style="font-size:12px">Step 1 / 8</div>
+  </div>
+  <div class="main">
+    <aside class="ingb"><h3>Ingredients</h3><div id="ing"></div></aside>
+    <div class="view"><div class="stage" id="stage">
+      <svg class="rg" viewBox="0 0 560 520"><circle cx="280" cy="260" r="215" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="8 8" opacity=".5"/></svg>
+      <div class="panel"><div id="slots"></div><div class="arr">▼</div><div id="prod"></div></div>
+    </div></div>
+  </div>
+  <div class="ins"><span><b>Instruction:</b> <span id="msg"></span></span></div>
+  <div class="track" id="trk"><div class="ground"></div><div class="fin"></div><div class="rn" id="rn"><span class="bub"></span><div class="sp"></div></div></div>
+</section>
+
+<section id="s3" class="scr"><div class="mid">
+  <h2 class="px">Cycle complete!</h2>
+  <div class="wtrack"><div class="fin2"></div><div id="wr"><div class="sp"></div></div></div>
+  <p>Oxaloacetate is regenerated and ready to meet a new acetyl CoA.</p>
+  <p id="res"></p>
+  <button id="re" class="px">PLAY AGAIN</button>
+</div></section>
+
+<section id="s4" class="scr"><div class="mid">
+  <h2 class="px">Time is up!</h2>
+  <div id="lr"><span class="gb px">huff… huff…</span><div id="ls"></div></div>
+  <p>Your runner is out of breath. Finish the cycle faster next time.</p>
+  <button id="again" class="px">TRY AGAIN</button>
+</div></section>
+
+<script>
+const $=i=>document.getElementById(i);
+const go=i=>document.querySelectorAll('.scr').forEach(e=>e.classList.toggle('on',e.id==i));
+const mm=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+
+/* ---- pixel characters (# body, e eye) ---- */
+const SP={
+ dino:{c:'Dino',b:["......####","......#e##","......####","......##..","#....###..","##..#####.",".########.","..#######."],a:["...##.#...","...#..##.."],r:["...#..##..","...##.#..."]},
+ robot:{c:'Robot',b:["....##....","..######..","..#e##e#..","..######..","...####...",".########.","#.######.#","..######.."],a:["..##..##..","..#....#.."],r:["..##..##..","...#..#..."]},
+ cat:{c:'Cat',b:["..#....#..","..######..",".#e####e#.",".########.","..######..","...####...",".########.","..######.#"],a:[".##....##.",".#......#."],r:["..##..##..","..#....#.."]}
+};
+function spr(k,f,px=4){const s=SP[k],rows=[...s.b,...(f?s.r:s.a)];let o=`<svg width="${10*px}" height="${rows.length*px}" viewBox="0 0 10 ${rows.length}" shape-rendering="crispEdges">`;
+ rows.forEach((r,y)=>[...r].forEach((c,x)=>{if(c=='#')o+=`<rect x="${x}" y="${y}" width="1" height="1" fill="currentColor"/>`;if(c=='e')o+=`<rect x="${x}" y="${y}" width="1" height="1" fill="var(--bg)"/>`}));return o+'</svg>'}
+
+/* ---- compounds: c = chain atoms, b = branches {atomIndex:[[dir(-1 up,1 down),label,double?]]}, d = double bonds in chain ---- */
+const C={
+ acetyl:{n:'Acetyl CoA',c:['CH₃','C','S','CoA'],b:{1:[[-1,'O',1]]}},
+ oaa:{n:'Oxaloacetate',c:['HOOC','C','CH₂','COOH'],b:{1:[[-1,'O',1]]}},
+ cit:{n:'Citrate',c:['HOOC','CH₂','C','CH₂','COOH'],b:{2:[[-1,'COOH'],[1,'OH']]}},
+ iso:{n:'Isocitrate',c:['HOOC','CH₂','CH','CH','COOH'],b:{2:[[-1,'COOH']],3:[[1,'OH']]}},
+ akg:{n:'α-Ketoglutarate',c:['HOOC','CH₂','CH₂','C','COOH'],b:{3:[[-1,'O',1]]}},
+ scoa:{n:'Succinyl CoA',c:['HOOC','CH₂','CH₂','C','S','CoA'],b:{3:[[-1,'O',1]]}},
+ suc:{n:'Succinate',c:['HOOC','CH₂','CH₂','COOH'],b:{}},
+ fum:{n:'Fumarate',c:['HOOC','CH','CH','COOH'],b:{},d:[1]},
+ mal:{n:'Malate',c:['HOOC','CH₂','CH','COOH'],b:{2:[[1,'OH']]}}
+};
+/* structure descriptions shown in the instruction box (no formulas or names of products) */
+const H={
+ acetyl:'2 carbons: a CH₃ joined to a C=O, which is bonded through sulfur (S) to CoA',
+ oaa:'4 carbons: 2 carboxyl groups (COOH) with a ketone (C=O) and a CH₂ in between',
+ cit:'6 carbons: 3 carboxyl groups (COOH) and 1 hydroxyl (OH) on the central carbon',
+ iso:'6 carbons: 3 carboxyl groups (COOH) and 1 hydroxyl (OH) on a CH carbon',
+ akg:'5 carbons: 2 carboxyl groups (COOH), a ketone (C=O) and 2 CH₂ groups',
+ scoa:'4 carbons: 1 COOH at one end and a C=O bonded through S to CoA at the other',
+ suc:'4 carbons: 2 carboxyl groups (COOH) joined by two CH₂ groups, single bonds only',
+ fum:'4 carbons: 2 carboxyl groups (COOH) joined by a CH=CH double bond',
+ mal:'4 carbons: 2 carboxyl groups (COOH), 1 hydroxyl (OH), one CH₂ and one CH'
+};
+const ln=(a,b,c,d)=>`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}"/>`;
+function draw(k){const s=C[k],S=46,n=s.c.length,W=n*S,y=40,X=i=>S*i+S/2,R=l=>l.length*3.6+1.5;let L='',T='';
+ s.c.forEach((l,i)=>{T+=`<text x="${X(i)}" y="${y}">${l}</text>`;
+  if(i<n-1){const a=X(i)+R(l),b=X(i+1)-R(s.c[i+1]);L+=(s.d&&s.d.includes(i))?ln(a,y-2.5,b,y-2.5)+ln(a,y+2.5,b,y+2.5):ln(a,y,b,y)}
+  (s.b[i]||[]).forEach(([d,t,db])=>{const y1=y+d*9,y2=y+d*22,x=X(i);L+=db?ln(x-2.5,y1,x-2.5,y2)+ln(x+2.5,y1,x+2.5,y2):ln(x,y1,x,y2);T+=`<text x="${x}" y="${y+d*30}">${t}</text>`})});
+ return `<svg viewBox="0 0 ${W} 80"><g stroke="currentColor" stroke-width="1.6">${L}</g><g fill="currentColor" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" text-anchor="middle" dominant-baseline="central">${T}</g></svg>`}
+
+/* ---- the 8 steps of the cycle ---- */
+const ST=[
+ {p:'cit',in:['acetyl','oaa'],e:'Citrate synthase',o:'CoA is released.'},
+ {p:'iso',in:['cit'],e:'Aconitase',o:'Citrate is rearranged into isocitrate.'},
+ {p:'akg',in:['iso'],e:'Isocitrate dehydrogenase',o:'CO₂ is released and NADH is formed.'},
+ {p:'scoa',in:['akg'],e:'α-Ketoglutarate dehydrogenase',o:'CO₂ is released and NADH is formed.'},
+ {p:'suc',in:['scoa'],e:'Succinyl-CoA synthetase',o:'GTP (ATP) is formed and CoA is released.'},
+ {p:'fum',in:['suc'],e:'Succinate dehydrogenase',o:'FADH₂ is formed.'},
+ {p:'mal',in:['fum'],e:'Fumarase',o:'Water is added across the double bond.'},
+ {p:'oaa',in:['mal'],e:'Malate dehydrogenase',o:'NADH is formed and oxaloacetate is regenerated.'}
+];
+
+let over=0,me='dino',step=0,left=600,pen=0,sel=null,drag=null,busy=0,tmr,fr,f=0;
+
+/* ---- loading + character select ---- */
+setTimeout(()=>$('lb').firstElementChild.style.width='100%',80);
+setTimeout(()=>{$('lb').hidden=true;$('go').hidden=false},1600);
+$('go').onclick=()=>go('s1');
+$('chars').innerHTML=Object.keys(SP).map(k=>`<button class="ch px" data-k="${k}" style="font-size:12px">${spr(k,0,7)}<span>${SP[k].c}</span></button>`).join('');
+$('chars').onclick=e=>{const b=e.target.closest('.ch');if(b)start(b.dataset.k)};
+$('re').onclick=$('again').onclick=()=>go('s1');
+
+/* ---- game ---- */
+function start(k){me=k;step=0;over=0;left=600;pen=0;busy=0;sel=null;
+ $('trk').classList.remove('stop');$('rn').classList.remove('tired');$('rn').querySelector('.bub').textContent='';
+ $('stage').querySelectorAll('.nd').forEach(n=>n.remove());
+ for(let i=0;i<8;i++){const a=(-90+i*45)*Math.PI/180,d=document.createElement('div');d.className='nd';d.textContent=i+1;d.title=C[ST[i].p].n;d.style.left=280+215*Math.cos(a)+'px';d.style.top=260+215*Math.sin(a)+'px';$('stage').appendChild(d)}
+ $('trk').querySelectorAll('.flag').forEach(n=>n.remove());
+ for(let i=1;i<8;i++){const g=document.createElement('div');g.className='flag';g.style.left=`calc((100% - 56px) * ${i/8} + 28px)`;$('trk').appendChild(g)}
+ $('rn').style.left='0';
+ go('s2');clearInterval(tmr);clearInterval(fr);
+ tmr=setInterval(()=>{left--;upd();if(left<=0)lose()},1000);
+ fr=setInterval(()=>{f^=1;document.querySelectorAll('.sp').forEach(e=>e.innerHTML=spr(me,f))},160);
+ upd();load()}
+function upd(){$('tm').textContent=mm(Math.max(left,0));$('tm').classList.toggle('low',left<60);$('st').textContent=`Step ${Math.min(step+1,8)} / 8`}
+const msg=t=>$('msg').textContent=t;
+function load(){const s=ST[step];busy=0;sel=null;
+ const dec=Object.keys(C).filter(k=>!s.in.includes(k)).sort(()=>Math.random()-.5).slice(0,3);
+ const all=[...s.in,...dec].sort(()=>Math.random()-.5);
+ $('slots').innerHTML=s.in.map(k=>`<div class="slot" data-k="${k}"><b>${C[k].n}</b><div class="drop"></div></div>`).join('');
+ $('ing').innerHTML=all.map(k=>`<div class="card" tabindex="0" draggable="true" data-k="${k}">${draw(k)}</div>`).join('');
+ $('prod').className='';$('prod').innerHTML=`<b>${step+1}. ${C[s.p].n}</b><div class="pv"></div><small>Click here to check</small>`;
+ document.querySelectorAll('.nd').forEach((n,i)=>n.className='nd'+(i<step?' done':i==step?' cur':''));
+ msg(`Step ${step+1} (${s.e}). ${s.in.map(k=>C[k].n+' has '+H[k]).join('. ')}. Drag each structure into its box, then click the center box. Wrong = −10 s.`);
+ upd();setTimeout(()=>$('stage').classList.add('focus'),120)}
+
+function place(card,slot){if(!card||slot.classList.contains('ok'))return;
+ const d=slot.querySelector('.drop'),old=d.querySelector('.card');if(old)$('ing').appendChild(old);
+ d.appendChild(card);card.classList.remove('sel');sel=null}
+document.addEventListener('dragstart',e=>{drag=e.target.closest('.card');if(drag&&drag.classList.contains('lock')){e.preventDefault();drag=null}});
+document.addEventListener('dragover',e=>{if(e.target.closest('.slot,#ing'))e.preventDefault()});
+document.addEventListener('drop',e=>{if(busy||!drag)return;e.preventDefault();const s=e.target.closest('.slot');if(s)place(drag,s);else if(e.target.closest('#ing'))$('ing').appendChild(drag);drag=null});
+document.addEventListener('click',e=>{if(busy)return;const c=e.target.closest('.card'),s=e.target.closest('.slot');
+ if(c&&!c.classList.contains('lock')){if(c.parentElement.classList.contains('drop')){$('ing').appendChild(c);return}
+  document.querySelectorAll('.card.sel').forEach(x=>x.classList.remove('sel'));sel=(sel===c)?null:c;if(sel)c.classList.add('sel');return}
+ if(s&&sel)place(sel,s)});
+document.addEventListener('keydown',e=>{if(e.key=='Enter'&&document.activeElement.classList.contains('card'))document.activeElement.click()});
+
+function hit(sec){left-=sec;pen+=sec;const p=$('pn');p.textContent='−'+sec+'s';p.classList.remove('go');void p.offsetWidth;p.classList.add('go');upd();if(left<=0)lose()}
+$('prod').onclick=()=>{if(busy)return;const sl=[...document.querySelectorAll('.slot')];
+ if(sl.some(s=>!s.querySelector('.card'))){msg('Fill every box first, then click the center box.');return}
+ let bad=0;
+ sl.forEach(s=>{const c=s.querySelector('.card');
+  if(c.dataset.k==s.dataset.k){s.classList.add('ok');c.classList.add('lock');c.draggable=false}
+  else{bad++;$('ing').appendChild(c);s.classList.add('no');setTimeout(()=>s.classList.remove('no'),600)}});
+ if(bad){hit(bad*10);msg(`${bad} wrong structure${bad>1?'s':''} sent back to the ingredients. −${bad*10} s. Try again.`);return}
+ success()};
+function success(){busy=1;const s=ST[step];
+ $('prod').classList.add('ok');$('prod').querySelector('.pv').innerHTML=draw(s.p);$('prod').querySelector('small').textContent='';
+ document.querySelectorAll('.slot').forEach(x=>x.classList.add('mg'));
+ document.querySelectorAll('.nd')[step].className='nd done';
+ $('rn').style.left=`calc((100% - 56px) * ${(step+1)/8})`;
+ msg(`Correct! ${s.e}: ${s.o}`);
+ setTimeout(()=>$('stage').classList.remove('focus'),1300);
+ setTimeout(()=>{if(over)return;if(step==7)win();else{step++;load()}},3400)}
+function win(){clearInterval(tmr);$('res').textContent=`Time left ${mm(Math.max(left,0))}, penalties ${pen} s.`;go('s3');
+ const w=$('wr');w.classList.remove('run');void w.offsetWidth;w.classList.add('run')}
+function lose(){if(over)return;over=1;clearInterval(tmr);clearInterval(fr);busy=1;
+ $('tm').textContent='0:00';$('trk').classList.add('stop');$('rn').classList.add('tired');$('rn').querySelector('.sp').innerHTML=spr(me,0);$('rn').querySelector('.bub').textContent='huff… huff…';msg('Time is up!');
+ setTimeout(()=>{$('ls').innerHTML=spr(me,0,14);go('s4')},900)}
+</script>
+</body>
+</html>
